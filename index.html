@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Gold Deal Live</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <link rel="icon" href="icon.png" />
+
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --card-bg: #151922;
+        --card-border: #232936;
+        --text-main: #ffffff;
+        --text-muted: #8b94a5;
+        --gold: #fbbf24;
+        --gold-dim: rgba(251, 191, 36, 0.14);
+        --green: #10b981;
+        --green-bg: rgba(16, 185, 129, 0.14);
+        --green-border: rgba(16, 185, 129, 0.45);
+        --yellow: #f59e0b;
+        --yellow-bg: rgba(245, 158, 11, 0.14);
+        --yellow-border: rgba(245, 158, 11, 0.45);
+        --red: #ef4444;
+        --red-bg: rgba(239, 68, 68, 0.14);
+        --red-border: rgba(239, 68, 68, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--bg);
+        color: var(--text-main);
+        margin: 0;
+        padding: 22px 16px 50px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 480px;
+      }
+
+      /* Горен Live Ticker бар */
+      .ticker-card {
+        background: linear-gradient(160deg, #1b212e, #131720);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .ticker-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .live-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #34d399;
+      }
+
+      .live-status.cached {
+        color: var(--gold);
+      }
+
+      .live-status.manual {
+        color: #60a5fa;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+        animation: pulse 1.8s infinite;
+      }
+
+      .live-status.cached .pulse-dot {
+        background: var(--gold);
+        box-shadow: none;
+        animation: none;
+      }
+
+      .live-status.manual .pulse-dot {
+        background: #60a5fa;
+        box-shadow: none;
+        animation: none;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(0.85);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .ticker-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .icon-btn {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+        border-radius: 9px;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .icon-btn:active {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .ticker-prices {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+
+      .spot-oz-main {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--gold);
+        letter-spacing: -0.4px;
+      }
+
+      .spot-oz-main span {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .spot-g-sub {
+        font-size: 14px;
+        font-weight: 800;
+        color: #e5e7eb;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 9px;
+      }
+
+      /* Ръчен вход за борсата (скрит по подразбиране) */
+      .manual-spot-row {
+        display: none;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .manual-spot-row.visible {
+        display: flex;
+      }
+
+      .manual-spot-row input {
+        padding: 9px 12px;
+        font-size: 16px;
+      }
+
+      .live-back-btn {
+        background: rgba(16, 185, 129, 0.18);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #34d399;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      /* Готови бутони за грамаж/монета */
+      .presets-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .presets-subrow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .preset-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        border-radius: 14px;
+        padding: 10px 6px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        transition: all 0.15s ease;
+      }
+
+      .preset-btn.active {
+        background: linear-gradient(
+          160deg,
+          rgba(251, 191, 36, 0.18),
+          rgba(245, 158, 11, 0.08)
+        );
+        border-color: var(--gold);
+        box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25);
+      }
+
+      .preset-name {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .preset-sub {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .preset-btn.active .preset-sub {
+        color: #fde68a;
+      }
+
+      /* Полета за ръчен грамаж */
+      .custom-box {
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+
+      .custom-box.visible {
+        display: grid;
+      }
+
+      /* Карта с цените на търговеца */
+      .inputs-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .price-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .field-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .selected-info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-muted);
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      input {
+        width: 100%;
+        background: #0d1017;
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        border-radius: 13px;
+        padding: 12px 34px 12px 12px;
+        font-size: 18px;
+        font-weight: 800;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        border-color: var(--gold);
+      }
+
+      input::placeholder {
+        color: #4b5563;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .clear-btn {
+        position: absolute;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: var(--text-muted);
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Светофар карта */
+      .result-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        transition: all 0.25s ease;
+      }
+
+      .result-card.green {
+        background: linear-gradient(160deg, var(--green-bg), #121720);
+        border-color: var(--green-border);
+      }
+
+      .result-card.yellow {
+        background: linear-gradient(160deg, var(--yellow-bg), #121720);
+        border-color: var(--yellow-border);
+      }
+
+      .result-card.red {
+        background: linear-gradient(160deg, var(--red-bg), #121720);
+        border-color: var(--red-border);
+      }
+
+      .verdict-pill {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 99px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-muted);
+      }
+
+      .result-card.green .verdict-pill {
+        background: rgba(16, 185, 129, 0.22);
+        color: #34d399;
+      }
+      .result-card.yellow .verdict-pill {
+        background: rgba(245, 158, 11, 0.22);
+        color: #fbbf24;
+      }
+      .result-card.red .verdict-pill {
+        background: rgba(239, 68, 68, 0.22);
+        color: #f87171;
+      }
+
+      .premium-pct {
+        font-size: 44px;
+        font-weight: 900;
+        letter-spacing: -1px;
+        line-height: 1.05;
+        margin-bottom: 4px;
+        color: var(--text-muted);
+      }
+
+      .result-card.green .premium-pct {
+        color: #34d399;
+      }
+      .result-card.yellow .premium-pct {
+        color: #fbbf24;
+      }
+      .result-card.red .premium-pct {
+        color: #f87171;
+      }
+
+      .premium-eur {
+        font-size: 14px;
+        font-weight: 700;
+        color: #d1d5db;
+        margin-bottom: 14px;
+      }
+
+      /* Банер за спред Купува / Продава */
+      .bid-ask-banner {
+        display: none;
+        background: rgba(59, 130, 246, 0.14);
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #93c5fd;
+      }
+
+      .bid-ask-banner.visible {
+        display: block;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 12px;
+      }
+
+      .stat-box {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 12px;
+        padding: 9px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 3px;
+      }
+
+      .stat-val {
+        font-size: 15px;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      .legend {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+        padding: 0 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Live Spot EUR Ticker -->
+      <div class="ticker-card">
+        <div class="ticker-top">
+          <div class="live-status" id="liveStatusBadge">
+            <span class="pulse-dot"></span>
+            <span id="liveStatusText">Свързване с борсата...</span>
+          </div>
+          <div class="ticker-actions">
+            <button
+              class="icon-btn"
+              onclick="fetchLiveSpot(true)"
+              title="Обнови сега"
+            >
+              ↻
+            </button>
+            <button
+              class="icon-btn"
+              onclick="toggleManualSpot()"
+              title="Ръчен курс"
+            >
+              ✏️
+            </button>
+          </div>
+        </div>
+
+        <div class="ticker-prices">
+          <div class="spot-oz-main" id="spotOzDisplay">
+            €0.00 <span>/ oz</span>
+          </div>
+          <div class="spot-g-sub" id="spotGramDisplay">€0.00 / г</div>
+        </div>
+
+        <div class="manual-spot-row" id="manualSpotRow">
+          <input
+            type="number"
+            step="0.01"
+            inputmode="decimal"
+            id="manualSpotInput"
+            placeholder="Курс за 1 oz (€)"
+            oninput="onManualSpotInput()"
+          />
+          <button class="live-back-btn" onclick="enableLiveMode()">
+            ● LIVE
+          </button>
+        </div>
+      </div>
+
+      <!-- Готови бутони -->
+      <div class="presets-grid">
+        <button
+          class="preset-btn active"
+          data-id="oz1"
+          onclick="selectPreset('oz1')"
+        >
+          <span class="preset-name">1 oz</span>
+          <span class="preset-sub">31.10 г • 999.9</span>
+        </button>
+        <button class="preset-btn" data-id="g20" onclick="selectPreset('g20')">
+          <span class="preset-name">20 г</span>
+          <span class="preset-sub">20.00 г • 999.9</span>
+        </button>
+        <button class="preset-btn" data-id="g10" onclick="selectPreset('g10')">
+          <span class="preset-name">10 г</span>
+          <span class="preset-sub">10.00 г • 999.9</span>
+        </button>
+        <button
+          class="preset-btn"
+          data-id="napoleon"
+          onclick="selectPreset('napoleon')"
+        >
+          <span class="preset-name">Франк</span>
+          <span class="preset-sub">5.81 г чисто • 900</span>
+        </button>
+        <button
+          class="preset-btn"
+          data-id="sovereign"
+          onclick="selectPreset('sovereign')"
+        >
+          <span class="preset-name">Суверен</span>
+          <span class="preset-sub">7.32 г чисто • 916.7</span>
+        </button>
+        <button
+          class="preset-btn"
+          data-id="ducat"
+          onclick="selectPreset('ducat')"
+        >
+          <span class="preset-name">Дукат</span>
+          <span class="preset-sub">3.44 г чисто • 986</span>
+        </button>
+      </div>
+
+      <div class="presets-subrow">
+        <button
+          class="preset-btn"
+          data-id="g100"
+          onclick="selectPreset('g100')"
+        >
+          <span class="preset-name">100 г</span>
+          <span class="preset-sub">100.00 г • 999.9</span>
+        </button>
+        <button
+          class="preset-btn"
+          data-id="custom"
+          onclick="selectPreset('custom')"
+        >
+          <span class="preset-name">✏️ Ръчно (г)</span>
+          <span class="preset-sub">Друг грамаж / проба</span>
+        </button>
+      </div>
+
+      <!-- Полета за ръчен грамаж -->
+      <div class="custom-box" id="customBox">
+        <div class="field-group">
+          <div class="field-label">Грамаж (г)</div>
+          <input
+            type="number"
+            step="0.01"
+            inputmode="decimal"
+            id="customGrams"
+            value="1"
+            oninput="calculate()"
+          />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Проба (напр. 999.9)</div>
+          <input
+            type="number"
+            step="0.1"
+            inputmode="decimal"
+            id="customPurity"
+            value="999.9"
+            oninput="calculate()"
+          />
+        </div>
+      </div>
+
+      <!-- Цени на търговеца -->
+      <div class="inputs-card">
+        <div class="selected-info-bar">
+          <span>Избрано злато:</span>
+          <strong id="selectedPureInfo" style="color: var(--gold)"
+            >31.10 г (1.000 oz)</strong
+          >
+        </div>
+
+        <div class="price-cols">
+          <div class="field-group">
+            <div class="field-label">Продава (€)</div>
+            <div class="input-wrap">
+              <input
+                type="number"
+                step="0.01"
+                inputmode="decimal"
+                id="askInput"
+                placeholder="Оферта..."
+                oninput="calculate()"
+              />
+              <button class="clear-btn" onclick="clearField('askInput')">
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">
+              Купува (€) <span style="opacity: 0.6">(опц.)</span>
+            </div>
+            <div class="input-wrap">
+              <input
+                type="number"
+                step="0.01"
+                inputmode="decimal"
+                id="bidInput"
+                placeholder="Обратно..."
+                oninput="calculate()"
+              />
+              <button class="clear-btn" onclick="clearField('bidInput')">
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Резултат и спред -->
+      <div class="result-card" id="resultCard">
+        <div class="verdict-pill" id="verdictText">Въведи цена „Продава“</div>
+        <div class="premium-pct" id="premiumPct">0.00%</div>
+        <div class="premium-eur" id="premiumEur">Спред над борсата: €0.00</div>
+
+        <div class="bid-ask-banner" id="bidAskBanner"></div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Борсова стойност</div>
+            <div class="stat-val" id="meltValueDisplay">€0.00</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Цена / г чисто злато</div>
+            <div class="stat-val" id="offerPerGramDisplay">€0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span
+          ><span class="dot" style="background: var(--green)"></span>≤ 5%
+          Топ</span
+        >
+        <span
+          ><span class="dot" style="background: var(--yellow)"></span>5% – 9%
+          Стандарт</span
+        >
+        <span
+          ><span class="dot" style="background: var(--red)"></span>> 9% Висок
+          спред</span
+        >
+      </div>
+    </div>
+
+    <script>
+      const TROY_OZ_GRAMS = 31.1034768;
+      const CACHE_KEY = "gold_deal_live_cache_v2";
+
+      const PRESETS = {
+        oz1: { pureGrams: 31.1034768, label: "31.10 г (1.000 oz)" },
+        g20: { pureGrams: 20.0, label: "20.00 г (0.643 oz)" },
+        g10: { pureGrams: 10.0, label: "10.00 г (0.322 oz)" },
+        ducat: { pureGrams: 3.4909 * 0.986, label: "3.44 г (3.49г × 986)" },
+        g100: { pureGrams: 100.0, label: "100.00 г (3.215 oz)" },
+        napoleon: { pureGrams: 6.4516 * 0.9, label: "5.81 г (6.45г × 900)" },
+        sovereign: {
+          pureGrams: 7.98805 * (22 / 24),
+          label: "7.32 г (7.99г × 916.7)",
+        },
+      };
+
+      let activePreset = "oz1";
+      let currentSpotOzEur = 0;
+      let isManualMode = false;
+
+      function formatEur(num) {
+        return (
+          "€" +
+          num.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+
+      function updateSpotUI(statusType, statusLabel) {
+        const badge = document.getElementById("liveStatusBadge");
+        const text = document.getElementById("liveStatusText");
+        badge.className = "live-status " + (statusType || "");
+        text.innerText = statusLabel;
+
+        const perGram =
+          currentSpotOzEur > 0 ? currentSpotOzEur / TROY_OZ_GRAMS : 0;
+        document.getElementById("spotOzDisplay").innerHTML =
+          `${formatEur(currentSpotOzEur)} <span>/ oz</span>`;
+        document.getElementById("spotGramDisplay").innerText =
+          `${formatEur(perGram)} / г`;
+      }
+
+      async function fetchLiveSpot(manualTrigger = false) {
+        if (isManualMode && !manualTrigger) return;
+        if (manualTrigger) {
+          isManualMode = false;
+          document.getElementById("manualSpotRow").classList.remove("visible");
+        }
+
+        const nowTime = () =>
+          new Date().toLocaleTimeString("bg-BG", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+
+        try {
+          // 1. Взимаме XAU/USD в реално време + курса USD/EUR
+          const [goldRes, fxRes] = await Promise.all([
+            fetch("https://api.gold-api.com/price/XAU", { cache: "no-store" }),
+            fetch("https://api.frankfurter.app/latest?from=USD&to=EUR", {
+              cache: "no-store",
+            }).catch(() =>
+              fetch(
+                "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json",
+                { cache: "no-store" },
+              ),
+            ),
+          ]);
+
+          if (!goldRes.ok || !fxRes.ok) throw new Error("Primary feed error");
+
+          const goldData = await goldRes.json();
+          const fxData = await fxRes.json();
+
+          const xauUsd = parseFloat(goldData.price);
+          const usdToEur = fxData.rates
+            ? parseFloat(fxData.rates.EUR)
+            : parseFloat(fxData.usd.eur);
+
+          if (!xauUsd || !usdToEur) throw new Error("Invalid feed numbers");
+
+          currentSpotOzEur = xauUsd * usdToEur;
+          saveSpotCache(currentSpotOzEur);
+          updateSpotUI("", `LIVE • ${nowTime()}`);
+          calculate();
+          return;
+        } catch (e) {
+          // 2. Резервен източник директно XAU -> EUR
+          try {
+            const backupRes = await fetch(
+              "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/xau.json",
+              { cache: "no-store" },
+            );
+            if (!backupRes.ok) throw new Error("Backup feed error");
+            const backupData = await backupRes.json();
+            const xauEur = parseFloat(backupData.xau.eur);
+            if (!xauEur) throw new Error("Invalid backup value");
+
+            currentSpotOzEur = xauEur;
+            saveSpotCache(currentSpotOzEur);
+            updateSpotUI("", `LIVE • ${nowTime()}`);
+            calculate();
+            return;
+          } catch (err2) {
+            // 3. Офлайн кеш от телефона
+            loadSpotCache();
+          }
+        }
+      }
+
+      function saveSpotCache(val) {
+        try {
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              spot: val,
+              time: new Date().toLocaleTimeString("bg-BG", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            }),
+          );
+        } catch (e) {}
+      }
+
+      function loadSpotCache() {
+        try {
+          const raw = localStorage.getItem(CACHE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.spot > 0) {
+              currentSpotOzEur = parsed.spot;
+              updateSpotUI("cached", `ОФЛАЙН КЕШ (${parsed.time})`);
+              calculate();
+              return;
+            }
+          }
+        } catch (e) {}
+        updateSpotUI("cached", "Няма връзка — въведи ръчно (✏️)");
+      }
+
+      function toggleManualSpot() {
+        const row = document.getElementById("manualSpotRow");
+        const willShow = !row.classList.contains("visible");
+        row.classList.toggle("visible", willShow);
+        if (willShow) {
+          const inp = document.getElementById("manualSpotInput");
+          if (currentSpotOzEur > 0) inp.value = currentSpotOzEur.toFixed(2);
+          inp.focus();
+        }
+      }
+
+      function onManualSpotInput() {
+        isManualMode = true;
+        const val = parseFloat(
+          (document.getElementById("manualSpotInput").value || "").replace(
+            ",",
+            ".",
+          ),
+        );
+        currentSpotOzEur = !isNaN(val) && val > 0 ? val : 0;
+        updateSpotUI("manual", "РЪЧЕН КУРС");
+        calculate();
+      }
+
+      function enableLiveMode() {
+        isManualMode = false;
+        document.getElementById("manualSpotRow").classList.remove("visible");
+        fetchLiveSpot(true);
+      }
+
+      function selectPreset(id) {
+        activePreset = id;
+        document.querySelectorAll(".preset-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.id === id);
+        });
+        document
+          .getElementById("customBox")
+          .classList.toggle("visible", id === "custom");
+        calculate();
+      }
+
+      function getPureGrams() {
+        if (activePreset !== "custom") {
+          const p = PRESETS[activePreset];
+          document.getElementById("selectedPureInfo").innerText = p.label;
+          return p.pureGrams;
+        }
+
+        const g = parseFloat(
+          (document.getElementById("customGrams").value || "0").replace(
+            ",",
+            ".",
+          ),
+        );
+        const pur = parseFloat(
+          (document.getElementById("customPurity").value || "999.9").replace(
+            ",",
+            ".",
+          ),
+        );
+        if (isNaN(g) || g <= 0 || isNaN(pur) || pur <= 0) {
+          document.getElementById("selectedPureInfo").innerText = "0.00 г";
+          return 0;
+        }
+
+        const effectivePur = pur >= 999 ? 1 : pur / 1000;
+        const pure = g * effectivePur;
+        document.getElementById("selectedPureInfo").innerText =
+          `${pure.toFixed(2)} г чисто злато`;
+        return pure;
+      }
+
+      function clearField(id) {
+        const el = document.getElementById(id);
+        el.value = "";
+        calculate();
+        el.focus();
+      }
+
+      function calculate() {
+        const pureGrams = getPureGrams();
+        const askPrice = parseFloat(
+          (document.getElementById("askInput").value || "").replace(",", "."),
+        );
+        const bidPrice = parseFloat(
+          (document.getElementById("bidInput").value || "").replace(",", "."),
+        );
+
+        const card = document.getElementById("resultCard");
+        const verdictEl = document.getElementById("verdictText");
+        const pctEl = document.getElementById("premiumPct");
+        const eurEl = document.getElementById("premiumEur");
+        const meltEl = document.getElementById("meltValueDisplay");
+        const offerGramEl = document.getElementById("offerPerGramDisplay");
+        const bannerEl = document.getElementById("bidAskBanner");
+
+        card.classList.remove("green", "yellow", "red");
+        bannerEl.classList.remove("visible");
+
+        const spotPerGram =
+          currentSpotOzEur > 0 ? currentSpotOzEur / TROY_OZ_GRAMS : 0;
+        const meltValue = spotPerGram * pureGrams;
+        meltEl.innerText = formatEur(meltValue);
+
+        const hasAsk = !isNaN(askPrice) && askPrice > 0;
+        const hasBid = !isNaN(bidPrice) && bidPrice > 0;
+
+        // Търговски спред (Продава - Купува), ако са въведени и двете цени
+        if (hasAsk && hasBid) {
+          const spreadEur = askPrice - bidPrice;
+          const spreadPct = (spreadEur / askPrice) * 100;
+          const bidVsSpotPct =
+            meltValue > 0 ? ((bidPrice - meltValue) / meltValue) * 100 : 0;
+          bannerEl.innerHTML =
+            `Спред Купува/Продава: <strong>${spreadPct.toFixed(2)}% (${formatEur(spreadEur)})</strong>` +
+            (meltValue > 0
+              ? ` • Купува спрямо борса: ${bidVsSpotPct >= 0 ? "+" : ""}${bidVsSpotPct.toFixed(2)}%`
+              : "");
+          bannerEl.classList.add("visible");
+        }
+
+        if (meltValue <= 0) {
+          verdictEl.innerText = "Изчакване на курс...";
+          pctEl.innerText = "—";
+          eurEl.innerText = "Спред над борсата: €0.00";
+          offerGramEl.innerText =
+            hasAsk && pureGrams > 0 ? formatEur(askPrice / pureGrams) : "€0.00";
+          return;
+        }
+
+        if (!hasAsk && hasBid) {
+          const diffBid = bidPrice - meltValue;
+          const pctBid = (diffBid / meltValue) * 100;
+          verdictEl.innerText = "Оферта „Купува“ спрямо борсата";
+          pctEl.innerText = `${pctBid >= 0 ? "+" : ""}${pctBid.toFixed(2)}%`;
+          eurEl.innerText = `${diffBid >= 0 ? "Над борсата" : "Под борсата"}: ${diffBid >= 0 ? "+" : "-"}${formatEur(Math.abs(diffBid))}`;
+          offerGramEl.innerText = formatEur(bidPrice / pureGrams);
+          return;
+        }
+
+        if (!hasAsk) {
+          verdictEl.innerText = "Въведи цена „Продава“";
+          pctEl.innerText = "—";
+          eurEl.innerText = `Борсова стойност на златото: ${formatEur(meltValue)}`;
+          offerGramEl.innerText = "€0.00";
+          return;
+        }
+
+        const diffEur = askPrice - meltValue;
+        const premiumPct = (diffEur / meltValue) * 100;
+        const offerPerGram = askPrice / pureGrams;
+
+        const sign = premiumPct > 0 ? "+" : "";
+        pctEl.innerText = `${sign}${premiumPct.toFixed(2)}%`;
+        eurEl.innerText =
+          diffEur >= 0
+            ? `Спред над борсата: +${formatEur(diffEur)}`
+            : `Под борсовата цена: -${formatEur(Math.abs(diffEur))}`;
+        offerGramEl.innerText = formatEur(offerPerGram);
+
+        if (premiumPct <= 5.0) {
+          card.classList.add("green");
+          verdictEl.innerText =
+            premiumPct <= 0 ? "🔥 Под борсата!" : "🟢 Топ сделка";
+        } else if (premiumPct <= 9.0) {
+          card.classList.add("yellow");
+          verdictEl.innerText = "🟡 Приемлив спред";
+        } else {
+          card.classList.add("red");
+          verdictEl.innerText = "🔴 Висок спред";
+        }
+      }
+
+      // Първоначално зареждане + авто-обновяване на всеки 30 секунди
+      loadSpotCache();
+      fetchLiveSpot(false);
+      setInterval(() => fetchLiveSpot(false), 30000);
+    </script>
+  </body>
+</html>
